@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scamshield}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scamshield}
+      POSTGRES_DB: ${POSTGRES_DB:-scamshield}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scamshield}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    # Run migrations then serve.
+    command: >
+      sh -c "alembic upgrade head &&
+             gunicorn app.main:app
+             --worker-class uvicorn.workers.UvicornWorker
+             --workers 4 --bind 0.0.0.0:8000 --access-logfile -"
+
+  worker:
+    build: .
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO -Q default,ml
+
+  beat:
+    build: .
+    env_file: .env
+    depends_on:
+      - redis
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=INFO
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    profiles: ["observability"]
+
+volumes:
+  pgdata:

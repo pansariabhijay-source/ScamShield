@@ -1,0 +1,35 @@
+# ---- Core API ----
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+gunicorn==23.0.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.2.0
+python-multipart==0.0.20
+
+# ---- Auth ----
+pyjwt==2.10.1
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1  # pinned: passlib 1.7.4 warns ("__about__") with bcrypt>=4.1
+
+# ---- Database ----
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3
+alembic==1.14.0
+
+# ---- Cache / Queue ----
+redis==5.2.1
+celery==5.4.0
+
+# ---- Observability ----
+prometheus-client==0.21.1
+opentelemetry-sdk==1.29.0
+opentelemetry-instrumentation-fastapi==0.50b0
+opentelemetry-exporter-otlp-proto-grpc==1.29.0
+sentry-sdk==2.19.2
+
+# ---- LLM ----
+anthropic==0.42.0
+
+# NOTE: heavy ML deps are optional (installed only when ENABLE_HEAVY_MODELS=true)
+#   see requirements-ml.txt
