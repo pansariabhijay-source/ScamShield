@@ -1,48 +1,48 @@
 {
   "version": "text-clf-2.1.0",
-  "trained_at": "2026-06-29T13:59:18.315293+00:00",
-  "n_samples": 34104,
+  "trained_at": "2026-06-29T15:25:26.396733+00:00",
+  "n_samples": 34294,
   "sources": {
     "enron": 28806,
     "uci_sms": 5156,
-    "india_seed": 142
+    "india_seed": 332
   },
   "test_metrics": {
     "roc_auc": 0.9991,
     "pr_auc": 0.9988,
-    "precision_scam": 0.9835,
-    "recall_scam": 0.9831,
-    "f1_scam": 0.9833,
-    "accuracy": 0.9858
+    "precision_scam": 0.9853,
+    "recall_scam": 0.9822,
+    "f1_scam": 0.9838,
+    "accuracy": 0.9861
   },
-  "cv_f1_mean": 0.9844,
+  "cv_f1_mean": 0.9841,
   "calibration": {
     "method": "isotonic",
     "brier_raw": 0.0114,
-    "brier_calibrated": 0.0112
+    "brier_calibrated": 0.0111
   },
   "top_tokens": {
     "scam_indicative": [
       " !",
       " ! ",
       "call _num_",
-      " .",
-      " . ",
-      "your",
-      "re",
       " ?",
+      " .",
+      "your",
+      " . ",
+      "re",
       "to _num_",
       "in _num_",
       "_num_",
       "http",
-      "message subject",
+      "pay _amount_",
       "here",
+      "message subject",
       "! ",
-      " , ",
-      " ,",
-      ": ",
+      "_url_",
       " ? ",
-      "dating"
+      "pay",
+      " .. "
     ],
     "ham_indicative": [
       "enron",
@@ -56,15 +56,15 @@
       "enr",
       "enron",
       "nron",
-      "nr",
-      "nron ",
       "...",
       "louise",
-      "_num_ _num_",
+      "nron ",
+      "nr",
+      "gas",
       ":)",
       "enron com",
       "ron ",
-      "gas"
+      "for the"
     ]
   }
 }
