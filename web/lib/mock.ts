@@ -128,10 +128,46 @@ const UPI_FRAUD: DetectionResult = {
   created_at: new Date().toISOString(),
 };
 
+const PAYMENT_LURE: DetectionResult = {
+  scan_id: "demo-lure",
+  status: "COMPLETED",
+  input_type: "SMS",
+  scam_probability: 87,
+  risk_level: "SCAM",
+  confidence: 0.9,
+  category: "Payment / Phishing Link",
+  reasons: [
+    "Shortened link hides the real destination",
+    "Fake ‘money received / cashback’ lure to make you click",
+    "Pressure to ‘check now’ / act immediately",
+    "Real UPI credits appear in your bank app — never via a link",
+  ],
+  recommendation:
+    "Do not click the link. A genuine UPI credit shows up directly in your bank/UPI app and never needs you to tap a link to ‘claim’ or ‘check’ it. Delete and block the sender.",
+  human_summary:
+    "This dangles ‘₹ received, check now’ next to a shortened link. That combination is a classic phishing trap — the link leads to a fake page or a malware download, not your money. Money you actually receive shows up in your bank app on its own.",
+  risk_factors: [
+    { detector: "url.shortener", code: "SHORT_URL", description: "Shortened link hides destination", weight: 0.32 },
+    { detector: "text.lure", code: "PAYMENT_LURE", description: "Fake ‘money received’ bait", weight: 0.28 },
+    { detector: "text.urgency", code: "URGENCY", description: "‘Check now’ pressure", weight: 0.2 },
+  ],
+  engine_scores: [
+    { detector: "Language model", score: 0.86, confidence: 0.9 },
+    { detector: "URL reputation", score: 0.84, confidence: 0.88 },
+  ],
+  model_version: "mvp-0.1.0",
+  created_at: new Date().toISOString(),
+};
+
 const stamp = (r: DetectionResult): DetectionResult => ({
   ...r,
   created_at: new Date().toISOString(),
 });
+
+// Link-based lures are scams regardless of friendly "received/credited" wording.
+const SHORTENER = /\b(bit\.ly|tinyurl\.com|goo\.gl|t\.co|ow\.ly|is\.gd|cutt\.ly|rb\.gy|shorturl\.at|rebrand\.ly)\b/;
+const HAS_LINK = /(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|in|co|net|org|xyz|top|club|link|info|ly|gd|me)\b)/i;
+const ACTION_LURE = /(check now|click|claim|verify|login|update|act now|tap here|open link)/;
 
 /**
  * Pick a curated verdict from the input text. `inputType` biases the choice so
@@ -140,13 +176,30 @@ const stamp = (r: DetectionResult): DetectionResult => ({
 export function mockAnalyze(input: string, inputType: InputType = "TEXT"): DetectionResult {
   const t = input.toLowerCase();
 
+  const hasLink = HAS_LINK.test(t);
+  const hasShortener = SHORTENER.test(t);
+
+  // Highest priority: a shortened link, or any link paired with a "click/check
+  // now / claim" call-to-action, is a phishing lure no matter how friendly the
+  // wrapper text ("₹ received", "cashback") sounds. Catches the UPI/wallet
+  // "money received → tap link" scam that naive keyword rules wave through.
+  if (hasShortener || (hasLink && ACTION_LURE.test(t))) {
+    return stamp(PAYMENT_LURE);
+  }
+
   if (inputType === "UPI" || inputType === "QR" || /collect request|requested ₹|approve to receive|@ok|@ybl|@paytm|cashback/.test(t)) {
     return stamp({ ...UPI_FRAUD, input_type: inputType === "QR" ? "QR" : "UPI" });
   }
   if (/(job|hiring|work from home|earn|salary|part.?time|₹\s?\d{3,})/.test(t) && !/kyc|bank|otp/.test(t)) {
     return stamp(SUSPICIOUS_JOB);
   }
-  if (/(otp|credited|debited|received|a\/c|balance|txn)/.test(t) && !/kyc|expire|verify|suspend/.test(t)) {
+  // A transaction alert is only "safe" when it carries NO link and isn't urging
+  // you to click/verify — otherwise it's a lure dressed up as a credit notice.
+  if (
+    /(otp|credited|debited|received|a\/c|balance|txn)/.test(t) &&
+    !hasLink && !ACTION_LURE.test(t) &&
+    !/kyc|expire|verify|suspend/.test(t)
+  ) {
     return stamp(SAFE_OTP);
   }
   return stamp({ ...SCAM_KYC, input_type: inputType === "IMAGE" ? "IMAGE" : "WHATSAPP" });

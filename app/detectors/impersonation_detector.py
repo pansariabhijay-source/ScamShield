@@ -27,7 +27,12 @@ _OFFICIAL_DOMAINS = {
     "telecom": ["jio.com", "airtel.in", "trai.gov.in"],
 }
 _CRED_ASK = re.compile(
-    r"\b(otp|cvv|pin|password|net ?banking|card number|aadhaar|pan|expiry)\b", re.I
+    r"\b(otp|cvv|pin|password|card number|aadhaar|pan|expiry)\b", re.I
+)
+# "do NOT share your OTP" is a legitimate-sender advisory, not an impostor ask.
+_NEG_SHARE = re.compile(
+    r"\b(do not|don'?t|never|please do not)\s+(share|disclose|reveal|give|provide|tell)\b",
+    re.I,
 )
 
 
@@ -73,8 +78,10 @@ class ImpersonationDetector(BaseDetector):
                     signals.append(Signal("imp.lookalike_domain",
                                           f"Sender domain '{domain}' is not an official {claimed} domain", 0.25))
 
-        # Brand + credential ask is the strongest impostor tell
-        if _CRED_ASK.search(text):
+        # Brand + credential ask is the strongest impostor tell — but only when
+        # the message actually solicits the secret, not when it merely warns
+        # "never share your OTP" (the hallmark of a genuine bank notification).
+        if _CRED_ASK.search(text) and not _NEG_SHARE.search(text):
             score += 0.30
             signals.append(Signal("imp.cred_request",
                                   f"Asks for sensitive credentials while posing as {claimed}", 0.30))

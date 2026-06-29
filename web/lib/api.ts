@@ -20,7 +20,8 @@ export async function analyzeText(
     await fakeLatency();
     return mockAnalyze(content, inputType);
   }
-  const res = await fetch("/api/v1/detect/text", {
+  // Public demo endpoint: runs the real trained ensemble, no auth, no storage.
+  const res = await fetch("/api/v1/detect/public/text", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ content, input_type: inputType }),

@@ -1,0 +1,70 @@
+{
+  "version": "text-clf-2.1.0",
+  "trained_at": "2026-06-29T13:59:18.315293+00:00",
+  "n_samples": 34104,
+  "sources": {
+    "enron": 28806,
+    "uci_sms": 5156,
+    "india_seed": 142
+  },
+  "test_metrics": {
+    "roc_auc": 0.9991,
+    "pr_auc": 0.9988,
+    "precision_scam": 0.9835,
+    "recall_scam": 0.9831,
+    "f1_scam": 0.9833,
+    "accuracy": 0.9858
+  },
+  "cv_f1_mean": 0.9844,
+  "calibration": {
+    "method": "isotonic",
+    "brier_raw": 0.0114,
+    "brier_calibrated": 0.0112
+  },
+  "top_tokens": {
+    "scam_indicative": [
+      " !",
+      " ! ",
+      "call _num_",
+      " .",
+      " . ",
+      "your",
+      "re",
+      " ?",
+      "to _num_",
+      "in _num_",
+      "_num_",
+      "http",
+      "message subject",
+      "here",
+      "! ",
+      " , ",
+      " ,",
+      ": ",
+      " ? ",
+      "dating"
+    ],
+    "ham_indicative": [
+      "enron",
+      "vince",
+      " i ",
+      "..",
+      " enr",
+      " enro",
+      "enro",
+      "nro",
+      "enr",
+      "enron",
+      "nron",
+      "nr",
+      "nron ",
+      "...",
+      "louise",
+      "_num_ _num_",
+      ":)",
+      "enron com",
+      "ron ",
+      "gas"
+    ]
+  }
+}

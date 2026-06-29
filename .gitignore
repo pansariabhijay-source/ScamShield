@@ -19,3 +19,12 @@ htmlcov/
 .vscode/
 dist/
 build/
+
+# Training datasets — large & regenerable via `python -m scripts.fetch_datasets`.
+# The trained model artifact (app/detectors/models/*.joblib) IS committed so the
+# service runs out of the box without a training step.
+data/raw/
+data/processed/
+# …but the curated, hand-authored India seed IS source data — keep it.
+!data/curated/
+!data/curated/**

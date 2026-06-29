@@ -65,6 +65,46 @@ def test_impersonation_detector_freemail_bank():
     assert result.extra.get("institution") == "bank"
 
 
+def test_trained_model_loads_and_separates_scam_from_ham():
+    """The shipped TF-IDF+LR model (trained on real corpora) is wired in and
+    separates an obvious scam from obvious ham."""
+    det = TextDetector()
+    if det._clf is None:  # model artifact / sklearn unavailable in this env
+        import pytest
+
+        pytest.skip("trained text model not available")
+    scam = det.analyze(DetectionContext(
+        text="WINNER!! You have been selected for a free £1000 cash prize. "
+        "Call 09061701461 now to claim. Valid 12 hours only."
+    ))
+    ham = det.analyze(DetectionContext(text="Can you pick up some milk on your way home?"))
+    assert scam.score > ham.score
+    assert scam.score > 0.6
+    assert ham.score < 0.3
+    assert scam.extra.get("ml_proba") is not None
+
+
+def test_legit_otp_message_is_not_flagged():
+    """Regression: genuine 'your OTP is X, do not share it' notices must not be
+    classified as phishing even though the trained model finds them spam-like."""
+    ensemble = get_ensemble()
+    verdict = ensemble.run(DetectionContext(
+        text="Your OTP is 459123. Do not share it with anyone. - HDFC Bank"
+    ))
+    assert verdict.risk_level in {RiskLevel.SAFE, RiskLevel.SUSPICIOUS}
+    assert verdict.scam_probability < 50
+
+
+def test_credential_ask_still_flags():
+    """The legitimacy guard must not let an actual 'share your OTP' phishing ask
+    slip through."""
+    det = TextDetector()
+    res = det.analyze(DetectionContext(
+        text="URGENT: account suspended. Share your OTP and PIN now to reactivate."
+    ))
+    assert res.score > 0.6
+
+
 def test_ensemble_combines_to_scam():
     ensemble = get_ensemble()
     ctx = DetectionContext(

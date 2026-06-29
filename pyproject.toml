@@ -29,6 +29,8 @@ ignore = ["B008"]  # FastAPI Depends() in defaults is idiomatic
 # Detector lexicons and long user-facing strings are clearer on one line.
 "app/detectors/*" = ["E501"]
 "app/tests/*" = ["E501"]
+# Data/training utilities: long f-string report lines are clearer unwrapped.
+"scripts/*" = ["E501"]
 
 [tool.mypy]
 python_version = "3.11"

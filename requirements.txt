@@ -31,5 +31,11 @@ sentry-sdk==2.19.2
 # ---- LLM ----
 anthropic==0.42.0
 
-# NOTE: heavy ML deps are optional (installed only when ENABLE_HEAVY_MODELS=true)
-#   see requirements-ml.txt
+# ---- Trained text classifier (default detection path) ----
+# Lightweight: loads the ~1.5 MB TF-IDF + LogisticRegression model shipped in
+# app/detectors/models/ and runs sub-ms on CPU. Retrain via scripts/.
+scikit-learn==1.6.0
+joblib==1.4.2
+
+# NOTE: heavy ML deps (transformers/torch/easyocr) remain optional — installed
+#   only when ENABLE_HEAVY_MODELS=true. See requirements-ml.txt
